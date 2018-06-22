@@ -24,7 +24,7 @@ class Seafile(object):
                     fileinfor.success = True
                     fileinfor.id = r[0][0]
                     fileinfor.filename = r[0][1]
-                    Seafile.getdownloadurl(fileinfor.filename)
+                    fileinfor.urlpath = Seafile.getdownloadurl(fileinfor.filename)
                 else:
                     fileinfor.message = 'File not found.'
         except(Exception), e:
@@ -167,6 +167,6 @@ class Seafile(object):
             filename)
 
         r = requests.get(url, headers=token_headers)
-        print r.json()
+        return r.json()
 
 
