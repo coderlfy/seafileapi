@@ -24,6 +24,7 @@ class Seafile(object):
                     fileinfor.success = True
                     fileinfor.id = r[0][0]
                     fileinfor.filename = r[0][1]
+                    Seafile.getdownloadurl(fileinfor.filename)
                 else:
                     fileinfor.message = 'File not found.'
         except(Exception), e:
@@ -154,4 +155,18 @@ class Seafile(object):
                 wdlibraryid = librarys[i][u'id']
 
         return wdlibraryid
+
+    @staticmethod
+    def getdownloadurl(filename):
+        token_headers = {'Authorization': 'Token {0}'.format(Seafile.getseafileservertoken())}
+        wdlibraryid = Seafile.getwdlibraryid(token_headers)
+        url = 'http://{0}:{1}/api2/repos/{2}/file/?p=/{3}'.format(
+            Seafile.seafileserver.seafilehost,
+            Seafile.seafileserver.port,
+            wdlibraryid,
+            filename)
+
+        r = requests.get(url, headers=token_headers)
+        print r.json()
+
 
