@@ -11,7 +11,7 @@ class AddFile(tornado.web.RequestHandler):
         if filename.success:
             self.write(bll.Seafile.Seafile.add(filename.value))
         else:
-            self.write(HandlerBase.HandlerBase.getjson(fileid))
+            self.write(HandlerBase.HandlerBase.getjson(filename))
 
 
 class GetFile(tornado.web.RequestHandler):
