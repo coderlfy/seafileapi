@@ -3,15 +3,13 @@
 import dal.SeafileInfor
 import entity.FileInfor
 import entity.Result
-import entity.SeafileServer
 import BLLBase
-import json
 import uuid
+import reqmote.Seafile
 
 import requests
 
 class Seafile(object):
-    seafileserver = entity.SeafileServer.SeafileServer()
 
     @staticmethod
     def get(fileid):
@@ -24,7 +22,7 @@ class Seafile(object):
                     fileinfor.success = True
                     fileinfor.id = r[0][0]
                     fileinfor.filename = r[0][1]
-                    fileinfor.urlpath = Seafile.getdownloadurl(fileinfor.filename)
+                    fileinfor.urlpath = reqmote.Seafile.Seafile.getdownloadurl(fileinfor.filename)
                 else:
                     fileinfor.message = 'File not found.'
         except(Exception), e:
@@ -40,7 +38,7 @@ class Seafile(object):
             if fileid != '':
                 data = dal.SeafileInfor.SeafileInfor.select(fileid)
                 if len(data) > 0:
-                    deleteresult = Seafile.deleteseafile(data[0][1])
+                    deleteresult = reqmote.Seafile.Seafile.deleteseafile(data[0][1])
                     if deleteresult.success:
                         rowcount = dal.SeafileInfor.SeafileInfor.delete(fileid)
                         if rowcount == 0:
@@ -66,7 +64,7 @@ class Seafile(object):
         #若存在该文件记录则返回错误
         r = entity.Result.Result()
         try:
-            getfileinforresult = Seafile.getfileinfor(filename)
+            getfileinforresult = reqmote.Seafile.Seafile.getfileinfor(filename)
 
             if getfileinforresult.success:
                 seafiledal = dal.SeafileInfor.SeafileInfor();
@@ -87,86 +85,5 @@ class Seafile(object):
 
         return BLLBase.BLLBase.getjson(r)
 
-    @staticmethod
-    def getfileinfor(filename):
-        inforresult = entity.Result.Result()
-        try:
-            token_headers = {'Authorization': 'Token {0}'.format(Seafile.getseafileservertoken())}
-            wdlibraryid = Seafile.getwdlibraryid(token_headers)
-            url = 'http://{0}:{1}/api2/repos/{2}/file/detail/?p=/{3}'.format(
-                Seafile.seafileserver.seafilehost,
-                Seafile.seafileserver.port,
-                wdlibraryid,
-                filename)
-
-            r = requests.get(url, headers=token_headers)
-            fileinfor = r.json()
-            if u'id' in fileinfor:
-                inforresult.success = True
-            else:
-                inforresult.message = 'File not found in the file server'
-
-        except(Exception), e:
-            inforresult.message = repr(e)
-
-        return inforresult
-
-    @staticmethod
-    def deleteseafile(filename):
-        result = entity.Result.Result()
-        try:
-            token_headers = {'Authorization': 'Token {0}'.format(Seafile.getseafileservertoken())}
-            wdlibraryid = Seafile.getwdlibraryid(token_headers)
-            url = 'http://{0}:{1}/api2/repos/{2}/file/?p=/{3}'.format(
-                Seafile.seafileserver.seafilehost,
-                Seafile.seafileserver.port,
-                wdlibraryid,
-                filename)
-
-            r = requests.delete(url, headers=token_headers)
-
-            if r.json() == 'success':
-                result.success = True
-            else:
-                result.message = 'Delete has not allowed'
-
-        except(Exception), e:
-            result.message = repr(e)
-
-        return result
-
-    @staticmethod
-    def getseafileservertoken():
-        token_url = 'http://{0}:{1}/api2/auth-token/'.format(Seafile.seafileserver.seafilehost,
-                                                             Seafile.seafileserver.port)
-        token_p = {'username': Seafile.seafileserver.user, 'password': Seafile.seafileserver.pwd}
-        r = requests.post(token_url, token_p)
-        return r.json()[u'token']
-
-    @staticmethod
-    def getwdlibraryid(token):
-        librarys_url = 'http://{0}:{1}/api2/repos/'.format(Seafile.seafileserver.seafilehost,
-                                                           Seafile.seafileserver.port)
-        r = requests.get(librarys_url, headers=token)
-        wdlibraryid = ''
-        librarys = r.json()
-        for i in range(len(librarys)):
-            if librarys[i][u'name'] == Seafile.seafileserver.libraryname:
-                wdlibraryid = librarys[i][u'id']
-
-        return wdlibraryid
-
-    @staticmethod
-    def getdownloadurl(filename):
-        token_headers = {'Authorization': 'Token {0}'.format(Seafile.getseafileservertoken())}
-        wdlibraryid = Seafile.getwdlibraryid(token_headers)
-        url = 'http://{0}:{1}/api2/repos/{2}/file/?p=/{3}'.format(
-            Seafile.seafileserver.seafilehost,
-            Seafile.seafileserver.port,
-            wdlibraryid,
-            filename)
-
-        r = requests.get(url, headers=token_headers)
-        return r.json()
 
 
