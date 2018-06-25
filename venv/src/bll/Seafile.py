@@ -5,7 +5,7 @@ import entity.FileInfor
 import entity.Result
 import BLLBase
 import uuid
-import reqmote.Seafile
+import remote.Seafile
 
 import requests
 
@@ -22,7 +22,7 @@ class Seafile(object):
                     fileinfor.success = True
                     fileinfor.id = r[0][0]
                     fileinfor.filename = r[0][1]
-                    fileinfor.urlpath = reqmote.Seafile.Seafile.getdownloadurl(fileinfor.filename)
+                    fileinfor.urlpath = remote.Seafile.Seafile.getdownloadurl(fileinfor.filename)
                 else:
                     fileinfor.message = 'File not found.'
         except(Exception), e:
@@ -38,7 +38,7 @@ class Seafile(object):
             if fileid != '':
                 data = dal.SeafileInfor.SeafileInfor.select(fileid)
                 if len(data) > 0:
-                    deleteresult = reqmote.Seafile.Seafile.deleteseafile(data[0][1])
+                    deleteresult = remote.Seafile.Seafile.deleteseafile(data[0][1])
                     if deleteresult.success:
                         rowcount = dal.SeafileInfor.SeafileInfor.delete(fileid)
                         if rowcount == 0:
@@ -64,7 +64,7 @@ class Seafile(object):
         #若存在该文件记录则返回错误
         r = entity.Result.Result()
         try:
-            getfileinforresult = reqmote.Seafile.Seafile.getfileinfor(filename)
+            getfileinforresult = remote.Seafile.Seafile.getfileinfor(filename)
 
             if getfileinforresult.success:
                 seafiledal = dal.SeafileInfor.SeafileInfor();
