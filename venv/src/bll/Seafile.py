@@ -3,11 +3,11 @@
 import dal.SeafileInfor
 import entity.FileInfor
 import entity.Result
+import entity.UploadLink
 import BLLBase
 import uuid
 import remote.Seafile
-
-import requests
+import logging
 
 class Seafile(object):
 
@@ -20,15 +20,17 @@ class Seafile(object):
                 r = dal.SeafileInfor.SeafileInfor.select(fileid)
                 if len(r) > 0:
                     fileinfor.success = True
-                    fileinfor.id = r[0][0]
+                    fileinfor.fid = r[0][0]
                     fileinfor.filename = r[0][1]
                     fileinfor.urlpath = remote.Seafile.Seafile.getdownloadurl(fileinfor.filename)
                 else:
                     fileinfor.message = 'File not found.'
         except(Exception), e:
+            logging.exception(e)
             fileinfor.message = repr(e)
 
         return BLLBase.BLLBase.getjson(fileinfor)
+
 
     @staticmethod
     def delete(fileid):
@@ -52,6 +54,7 @@ class Seafile(object):
             else:
                 r.message = 'fileid is empty.'
         except(Exception), e:
+            logging.exception(e)
             r.message = repr(e)
 
         return BLLBase.BLLBase.getjson(r)
@@ -62,7 +65,7 @@ class Seafile(object):
         #根据文件名获取当前是否有该文件记录
         #若无该文件记录则进行插入
         #若存在该文件记录则返回错误
-        r = entity.Result.Result()
+        r = entity.FileInfor.FileInfor()
         try:
             getfileinforresult = remote.Seafile.Seafile.getfileinfor(filename)
 
@@ -72,18 +75,33 @@ class Seafile(object):
                 if len(files) > 0:
                     r.message = 'The cache has found the file, please change the file name to upload again!';
                 else:
-                    rowcount = seafiledal.insert(filename, uuid.uuid1())
+                    fid = uuid.uuid1()
+                    rowcount = seafiledal.insert(filename, fid)
                     if rowcount <= 0:
                         r.message = 'The file add to cache failed.';
                     else:
                         r.success = True
+                        r.fid = str(fid)
+
             else:
                 r.message = getfileinforresult.message
 
         except(Exception), e:
+            logging.exception(e)
             r.message = repr(e)
 
         return BLLBase.BLLBase.getjson(r)
 
+    @staticmethod
+    def getuploadlink(token):
+        uploadlink = entity.UploadLink.UploadLink()
+        try:
+            r = remote.Seafile.Seafile.getuploadurl(token)
+            uploadlink.link = r
+        except(Exception), e:
+            logging.exception(e)
+            r.message = repr(e)
+
+        return BLLBase.BLLBase.getjson(uploadlink)
 
 

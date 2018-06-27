@@ -23,6 +23,15 @@ class GetFile(tornado.web.RequestHandler):
             self.write(HandlerBase.HandlerBase.getjson(fileid))
 
 
+class UploadLink(tornado.web.RequestHandler):
+    def get(self):
+        token = HandlerBase.HandlerBase.getparam(self, 'token')
+        if token.success:
+            self.write(bll.Seafile.Seafile.getuploadlink(token.value))
+        else:
+            self.write(HandlerBase.HandlerBase.getjson(token))
+
+
 class DeleteFile(tornado.web.RequestHandler):
     def post(self):
         fileid = HandlerBase.HandlerBase.getparam(self, 'fileid')

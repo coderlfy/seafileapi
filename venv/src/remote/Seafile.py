@@ -90,4 +90,23 @@ class Seafile(object):
         r = requests.get(url, headers=token_headers)
         return r.json()
 
+    @staticmethod
+    def getuploadurl(token):
+        token_headers = {'Authorization': 'Token {0}'.format(token)}
+        wdlibraryid = Seafile.getwdlibraryid(token_headers)
+        url = 'http://{0}:{1}/api2/repos/{2}/upload-link/'.format(
+            Seafile.seafileserver.seafilehost,
+            Seafile.seafileserver.port,
+            wdlibraryid)
+
+        r = requests.get(url, headers=token_headers)
+
+        return r.json()
+
+    @staticmethod
+    def upload(filename):
+        uploadurl = Seafile.getuploadurl()
+
+
+
 
