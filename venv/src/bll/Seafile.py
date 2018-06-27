@@ -98,9 +98,10 @@ class Seafile(object):
         try:
             r = remote.Seafile.Seafile.getuploadurl(token)
             uploadlink.link = r
+            uploadlink.success = True
         except(Exception), e:
             logging.exception(e)
-            r.message = repr(e)
+            uploadlink.message = repr(e)
 
         return BLLBase.BLLBase.getjson(uploadlink)
 
